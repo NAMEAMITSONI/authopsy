@@ -1,6 +1,6 @@
-mod matrix;
 mod console;
 mod export;
+mod matrix;
 
 pub use console::ConsoleReporter;
-pub use export::{JsonExporter, HtmlExporter};
+pub use export::{HtmlExporter, JsonExporter};

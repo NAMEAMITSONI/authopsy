@@ -1,4 +1,4 @@
-use crate::models::{ResponseInfo, Vulnerability, VulnType, Evidence};
+use crate::models::{Evidence, ResponseInfo, VulnType, Vulnerability};
 
 pub struct StatusAnalyzer;
 

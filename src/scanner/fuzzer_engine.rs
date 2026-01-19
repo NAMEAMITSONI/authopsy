@@ -4,9 +4,11 @@ use std::sync::Arc;
 use indicatif::{ProgressBar, ProgressStyle};
 use tokio::sync::Semaphore;
 
-use crate::fuzzer::{ParamFuzzer, HeaderFuzzer};
+use crate::fuzzer::{HeaderFuzzer, ParamFuzzer};
 use crate::http::HttpClient;
-use crate::models::{Endpoint, RoleConfig, ResponseInfo, Vulnerability, VulnType, Evidence, Severity};
+use crate::models::{
+    Endpoint, Evidence, ResponseInfo, RoleConfig, Severity, VulnType, Vulnerability,
+};
 
 pub struct FuzzResult {
     pub endpoint: String,
@@ -72,16 +74,24 @@ impl FuzzerScanner {
             let baseline = self.get_baseline(endpoint).await;
 
             if baseline.status == 403 || baseline.status == 401 {
-                let param_results = self.fuzz_query_params(endpoint, &baseline, &param_combos, &pb, true).await;
+                let param_results = self
+                    .fuzz_query_params(endpoint, &baseline, &param_combos, &pb, true)
+                    .await;
                 all_results.extend(param_results);
 
-                let header_results = self.fuzz_headers(endpoint, &baseline, &header_combos, &pb, true).await;
+                let header_results = self
+                    .fuzz_headers(endpoint, &baseline, &header_combos, &pb, true)
+                    .await;
                 all_results.extend(header_results);
             } else if baseline.status == 200 {
-                let param_results = self.fuzz_query_params(endpoint, &baseline, &param_combos, &pb, false).await;
+                let param_results = self
+                    .fuzz_query_params(endpoint, &baseline, &param_combos, &pb, false)
+                    .await;
                 all_results.extend(param_results);
 
-                let header_results = self.fuzz_headers(endpoint, &baseline, &header_combos, &pb, false).await;
+                let header_results = self
+                    .fuzz_headers(endpoint, &baseline, &header_combos, &pb, false)
+                    .await;
                 all_results.extend(header_results);
             } else {
                 pb.inc((param_combos.len() + header_combos.len()) as u64);
@@ -111,7 +121,8 @@ impl FuzzerScanner {
         for params in combos {
             let _permit = self.semaphore.acquire().await.expect("Semaphore closed");
 
-            let response = self.client
+            let response = self
+                .client
                 .request_with_fuzz(
                     endpoint,
                     &self.user_role,
@@ -166,7 +177,8 @@ impl FuzzerScanner {
         for headers in combos {
             let _permit = self.semaphore.acquire().await.expect("Semaphore closed");
 
-            let response = self.client
+            let response = self
+                .client
                 .request_with_fuzz(
                     endpoint,
                     &self.user_role,
@@ -214,27 +226,25 @@ impl FuzzerScanner {
         fuzzed: &ResponseInfo,
         trigger: &HashMap<String, String>,
     ) -> Option<Vulnerability> {
-        if baseline.status == 403 || baseline.status == 401 {
-            if fuzzed.status == 200 {
-                let trigger_str = trigger
-                    .iter()
-                    .map(|(k, v)| format!("{}={}", k, v))
-                    .collect::<Vec<_>>()
-                    .join(", ");
+        if (baseline.status == 403 || baseline.status == 401) && fuzzed.status == 200 {
+            let trigger_str = trigger
+                .iter()
+                .map(|(k, v)| format!("{}={}", k, v))
+                .collect::<Vec<_>>()
+                .join(", ");
 
-                return Some(Vulnerability::new(
-                    Severity::Critical,
-                    VulnType::BrokenAccessControl,
-                    format!("Authorization bypass via: {}", trigger_str),
-                    Evidence {
-                        evidence_type: crate::models::EvidenceType::StatusMatrix,
-                        details: format!(
-                            "Baseline: {} -> Fuzzed: {} (size: {} -> {})",
-                            baseline.status, fuzzed.status, baseline.size, fuzzed.size
-                        ),
-                    },
-                ));
-            }
+            return Some(Vulnerability::new(
+                Severity::Critical,
+                VulnType::BrokenAccessControl,
+                format!("Authorization bypass via: {}", trigger_str),
+                Evidence {
+                    evidence_type: crate::models::EvidenceType::StatusMatrix,
+                    details: format!(
+                        "Baseline: {} -> Fuzzed: {} (size: {} -> {})",
+                        baseline.status, fuzzed.status, baseline.size, fuzzed.size
+                    ),
+                },
+            ));
         }
 
         None
@@ -311,9 +321,7 @@ impl FuzzerScanner {
                 }
                 count
             }
-            serde_json::Value::Array(arr) => {
-                arr.first().map(Self::count_json_keys).unwrap_or(0)
-            }
+            serde_json::Value::Array(arr) => arr.first().map(Self::count_json_keys).unwrap_or(0),
             _ => 0,
         }
     }
@@ -345,11 +353,19 @@ pub fn print_fuzz_results(results: &[FuzzResult]) {
     use colored::Colorize;
 
     if results.is_empty() {
-        println!("\n{}", "No bypass vulnerabilities found via fuzzing.".green());
+        println!(
+            "\n{}",
+            "No bypass vulnerabilities found via fuzzing.".green()
+        );
         return;
     }
 
-    println!("\n{}", "Fuzzing Results - Bypass Vulnerabilities Found:".red().bold());
+    println!(
+        "\n{}",
+        "Fuzzing Results - Bypass Vulnerabilities Found:"
+            .red()
+            .bold()
+    );
     println!("{}", "=".repeat(80));
 
     for result in results {

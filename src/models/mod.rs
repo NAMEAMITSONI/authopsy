@@ -1,9 +1,9 @@
 mod endpoint;
-mod role;
 mod result;
+mod role;
 mod vulnerability;
 
-pub use endpoint::{Endpoint, HttpMethod, PathParam, ParamType};
+pub use endpoint::{Endpoint, HttpMethod, ParamType, PathParam};
+pub use result::{ResponseInfo, ScanResult, ScanSummary};
 pub use role::{Role, RoleConfig};
-pub use result::{ScanResult, ResponseInfo, ScanSummary};
-pub use vulnerability::{Vulnerability, Severity, VulnType, Evidence, EvidenceType};
+pub use vulnerability::{Evidence, EvidenceType, Severity, VulnType, Vulnerability};

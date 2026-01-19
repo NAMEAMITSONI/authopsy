@@ -1,10 +1,9 @@
 use anyhow::Result;
 use reqwest::{Client, Method, RequestBuilder};
-use std::time::{Duration, Instant};
 use std::collections::HashMap;
+use std::time::{Duration, Instant};
 
-
-use crate::models::{Endpoint, HttpMethod, RoleConfig, ResponseInfo};
+use crate::models::{Endpoint, HttpMethod, ResponseInfo, RoleConfig};
 
 pub struct HttpClient {
     client: Client,
@@ -20,10 +19,7 @@ impl HttpClient {
 
         let base_url = base_url.trim_end_matches('/').to_string();
 
-        Ok(Self {
-            client,
-            base_url,
-        })
+        Ok(Self { client, base_url })
     }
 
     pub async fn request(

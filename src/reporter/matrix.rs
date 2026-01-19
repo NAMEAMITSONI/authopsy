@@ -39,7 +39,10 @@ impl AccessControlMatrix {
                     .get_response(Role::Anonymous)
                     .map(|resp| {
                         let status = Self::format_status(resp.status, resp.is_error());
-                        if r.is_vulnerable() && resp.is_success() && r.max_severity() == Some(Severity::High) {
+                        if r.is_vulnerable()
+                            && resp.is_success()
+                            && r.max_severity() == Some(Severity::High)
+                        {
                             format!("{} ⚠", status)
                         } else {
                             status

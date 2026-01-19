@@ -28,7 +28,7 @@ impl fmt::Display for HttpMethod {
 }
 
 impl HttpMethod {
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s.to_uppercase().as_str() {
             "GET" => Some(HttpMethod::Get),
             "POST" => Some(HttpMethod::Post),
@@ -122,7 +122,10 @@ impl Endpoint {
         }
     }
 
-    pub fn resolve_path(&self, custom_params: &std::collections::HashMap<String, String>) -> String {
+    pub fn resolve_path(
+        &self,
+        custom_params: &std::collections::HashMap<String, String>,
+    ) -> String {
         let mut resolved = self.path.clone();
         for param in &self.path_params {
             let value = custom_params

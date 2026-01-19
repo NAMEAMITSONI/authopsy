@@ -1,5 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use serde_json::Value;
+use std::collections::{HashMap, HashSet};
 
 pub struct JsonDiffer {
     ignore_patterns: Vec<String>,
@@ -26,7 +26,11 @@ impl JsonDiffer {
         keys1 == keys2
     }
 
-    pub fn extra_keys<'a>(&self, base: &'a HashSet<String>, compare: &'a HashSet<String>) -> Vec<&'a String> {
+    pub fn extra_keys<'a>(
+        &self,
+        base: &'a HashSet<String>,
+        compare: &'a HashSet<String>,
+    ) -> Vec<&'a String> {
         compare.difference(base).collect()
     }
 
@@ -97,9 +101,10 @@ impl JsonDiffer {
 
         keys.into_iter()
             .filter(|key| {
-                !self.ignore_patterns.iter().any(|pattern| {
-                    key.contains(pattern) || key.ends_with(pattern)
-                })
+                !self
+                    .ignore_patterns
+                    .iter()
+                    .any(|pattern| key.contains(pattern) || key.ends_with(pattern))
             })
             .collect()
     }

@@ -1,17 +1,17 @@
 use anyhow::Result;
 use clap::Parser;
 
-mod cli;
-mod scanner;
-mod http;
 mod analyzer;
+mod cli;
+mod http;
 mod models;
 mod reporter;
+mod scanner;
 
 use cli::{Cli, Commands};
-use scanner::{Scanner, OpenApiParser, EndpointParser, FuzzerScanner, print_fuzz_results};
-use models::{RoleConfig, Role};
-use reporter::{ConsoleReporter, JsonExporter, HtmlExporter};
+use models::{Role, RoleConfig};
+use reporter::{ConsoleReporter, HtmlExporter, JsonExporter};
+use scanner::{EndpointParser, FuzzerScanner, OpenApiParser, Scanner, print_fuzz_results};
 
 mod fuzzer;
 
@@ -39,12 +39,30 @@ async fn main() -> Result<()> {
             public_paths,
         } => {
             run_scan(
-                url, spec, endpoints, admin, user, anon, header,
-                concurrency, timeout, output, ignore, verbose, params, bodies,
-                skip_paths, public_paths,
-            ).await?;
+                url,
+                spec,
+                endpoints,
+                admin,
+                user,
+                anon,
+                header,
+                concurrency,
+                timeout,
+                output,
+                ignore,
+                verbose,
+                params,
+                bodies,
+                skip_paths,
+                public_paths,
+            )
+            .await?;
         }
-        Commands::Report { input, format, output } => {
+        Commands::Report {
+            input,
+            format,
+            output,
+        } => {
             run_report(input, format, output)?;
         }
         Commands::Parse { spec } => {
@@ -61,13 +79,25 @@ async fn main() -> Result<()> {
             params,
             verbose,
         } => {
-            run_fuzz(url, spec, endpoints, user, header, concurrency, timeout, params, verbose).await?;
+            run_fuzz(
+                url,
+                spec,
+                endpoints,
+                user,
+                header,
+                concurrency,
+                timeout,
+                params,
+                verbose,
+            )
+            .await?;
         }
     }
 
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn run_scan(
     url: String,
     spec: Option<String>,
@@ -87,16 +117,16 @@ async fn run_scan(
     public_paths: Option<String>,
 ) -> Result<()> {
     let skip_list = skip_paths.map(|s| parse_path_list(&s)).unwrap_or_default();
-    let public_list = public_paths.map(|s| parse_path_list(&s)).unwrap_or_default();
+    let public_list = public_paths
+        .map(|s| parse_path_list(&s))
+        .unwrap_or_default();
 
     let mut endpoints = match (&spec, &endpoints_arg) {
         (Some(spec_path), _) => {
             let parser = OpenApiParser::new();
             parser.parse_file(spec_path)?
         }
-        (None, Some(ep_str)) => {
-            EndpointParser::parse(ep_str)?
-        }
+        (None, Some(ep_str)) => EndpointParser::parse(ep_str)?,
         (None, None) => {
             anyhow::bail!("Either --spec or --endpoints must be provided");
         }
@@ -107,7 +137,11 @@ async fn run_scan(
 
     if verbose {
         if original_count != endpoints.len() {
-            println!("Skipped {} endpoints, scanning {}", original_count - endpoints.len(), endpoints.len());
+            println!(
+                "Skipped {} endpoints, scanning {}",
+                original_count - endpoints.len(),
+                endpoints.len()
+            );
         } else {
             println!("Found {} endpoints to scan", endpoints.len());
         }
@@ -123,10 +157,22 @@ async fn run_scan(
     }
 
     let path_params = params.map(|p| parse_params(&p)).unwrap_or_default();
-    let request_bodies = bodies.map(|b| load_bodies(&b)).transpose()?.unwrap_or_default();
+    let request_bodies = bodies
+        .map(|b| load_bodies(&b))
+        .transpose()?
+        .unwrap_or_default();
     let ignore_fields = ignore.map(|i| parse_ignore(&i)).unwrap_or_default();
 
-    let scanner = Scanner::new(url, roles, concurrency, timeout, path_params, request_bodies, ignore_fields, public_list);
+    let scanner = Scanner::new(
+        url,
+        roles,
+        concurrency,
+        timeout,
+        path_params,
+        request_bodies,
+        ignore_fields,
+        public_list,
+    );
     let results = scanner.scan_all(endpoints, verbose).await;
 
     let reporter = ConsoleReporter::new();
@@ -192,7 +238,8 @@ fn parse_params(input: &str) -> std::collections::HashMap<String, String> {
 
 fn load_bodies(path: &str) -> Result<std::collections::HashMap<String, serde_json::Value>> {
     let content = std::fs::read_to_string(path)?;
-    let bodies: std::collections::HashMap<String, serde_json::Value> = serde_json::from_str(&content)?;
+    let bodies: std::collections::HashMap<String, serde_json::Value> =
+        serde_json::from_str(&content)?;
     Ok(bodies)
 }
 
@@ -201,9 +248,14 @@ fn parse_ignore(input: &str) -> Vec<String> {
 }
 
 fn parse_path_list(input: &str) -> Vec<String> {
-    input.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect()
+    input
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn run_fuzz(
     url: String,
     spec: Option<String>,
@@ -220,9 +272,7 @@ async fn run_fuzz(
             let parser = OpenApiParser::new();
             parser.parse_file(spec_path)?
         }
-        (None, Some(ep_str)) => {
-            EndpointParser::parse(ep_str)?
-        }
+        (None, Some(ep_str)) => EndpointParser::parse(ep_str)?,
         (None, None) => {
             anyhow::bail!("Either --spec or --endpoints must be provided");
         }

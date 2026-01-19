@@ -1,7 +1,7 @@
-use anyhow::{Result, Context};
-use std::fs;
-use tera::{Tera, Context as TeraContext};
+use anyhow::{Context, Result};
 use chrono::Utc;
+use std::fs;
+use tera::{Context as TeraContext, Tera};
 
 use crate::models::{ScanResult, ScanSummary, Severity};
 
@@ -21,8 +21,8 @@ impl JsonExporter {
     }
 
     pub fn load(path: &str) -> Result<Vec<ScanResult>> {
-        let content = fs::read_to_string(path)
-            .with_context(|| format!("Failed to read {}", path))?;
+        let content =
+            fs::read_to_string(path).with_context(|| format!("Failed to read {}", path))?;
 
         let data: ExportData = serde_json::from_str(&content)?;
         Ok(data.results)
@@ -40,7 +40,10 @@ impl HtmlExporter {
         let summary = ScanSummary::from_results(results, 0);
 
         let mut context = TeraContext::new();
-        context.insert("scan_time", &Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string());
+        context.insert(
+            "scan_time",
+            &Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string(),
+        );
         context.insert("total_endpoints", &summary.total_endpoints);
         context.insert("critical_count", &summary.critical_count);
         context.insert("high_count", &summary.high_count);
@@ -54,22 +57,34 @@ impl HtmlExporter {
                 let severity = r.max_severity();
                 HtmlRow {
                     endpoint: r.endpoint.display_path(),
-                    admin_status: r.responses.get(&crate::models::Role::Admin)
+                    admin_status: r
+                        .responses
+                        .get(&crate::models::Role::Admin)
                         .map(|resp| resp.status.to_string())
                         .unwrap_or_else(|| "-".to_string()),
-                    user_status: r.responses.get(&crate::models::Role::User)
+                    user_status: r
+                        .responses
+                        .get(&crate::models::Role::User)
                         .map(|resp| resp.status.to_string())
                         .unwrap_or_else(|| "-".to_string()),
-                    anon_status: r.responses.get(&crate::models::Role::Anonymous)
+                    anon_status: r
+                        .responses
+                        .get(&crate::models::Role::Anonymous)
                         .map(|resp| resp.status.to_string())
                         .unwrap_or_else(|| "-".to_string()),
-                    severity: severity.map(|s| s.to_string()).unwrap_or_else(|| "OK".to_string()),
+                    severity: severity
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| "OK".to_string()),
                     severity_class: Self::severity_class(severity),
-                    vulnerabilities: r.vulnerabilities.iter().map(|v| VulnRow {
-                        vuln_type: v.vuln_type.to_string(),
-                        description: v.description.clone(),
-                        evidence: v.evidence.details.clone(),
-                    }).collect(),
+                    vulnerabilities: r
+                        .vulnerabilities
+                        .iter()
+                        .map(|v| VulnRow {
+                            vuln_type: v.vuln_type.to_string(),
+                            description: v.description.clone(),
+                            evidence: v.evidence.details.clone(),
+                        })
+                        .collect(),
                 }
             })
             .collect();
@@ -89,7 +104,8 @@ impl HtmlExporter {
             Some(Severity::Low) => "low",
             Some(Severity::Info) => "info",
             None => "ok",
-        }.to_string()
+        }
+        .to_string()
     }
 
     fn get_template() -> String {

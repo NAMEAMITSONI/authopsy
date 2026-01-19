@@ -1,8 +1,11 @@
 use colored::Colorize;
-use tabled::{Table, Tabled, settings::{Style, Modify, object::Rows, Alignment}};
+use tabled::{
+    Table, Tabled,
+    settings::{Alignment, Modify, Style, object::Rows},
+};
 
-use crate::models::{ScanResult, Severity, ScanSummary};
 use super::matrix::AccessControlMatrix;
+use crate::models::{ScanResult, ScanSummary, Severity};
 
 pub struct ConsoleReporter;
 
@@ -119,7 +122,11 @@ impl ConsoleReporter {
             );
 
             for vuln in &result.vulnerabilities {
-                println!("  → {}: {}", vuln.vuln_type.to_string().yellow(), vuln.description);
+                println!(
+                    "  → {}: {}",
+                    vuln.vuln_type.to_string().yellow(),
+                    vuln.description
+                );
 
                 let recommendation = Self::get_recommendation(&vuln.vuln_type);
                 if !recommendation.is_empty() {
@@ -132,17 +139,31 @@ impl ConsoleReporter {
     fn get_recommendation(vuln_type: &crate::models::VulnType) -> &'static str {
         use crate::models::VulnType;
         match vuln_type {
-            VulnType::BrokenAccessControl => "Add role-based authorization check before returning data",
-            VulnType::VerticalPrivilegeEscalation => "Verify user role matches required permission level",
-            VulnType::HorizontalPrivilegeEscalation => "Check resource ownership before granting access",
+            VulnType::BrokenAccessControl => {
+                "Add role-based authorization check before returning data"
+            }
+            VulnType::VerticalPrivilegeEscalation => {
+                "Verify user role matches required permission level"
+            }
+            VulnType::HorizontalPrivilegeEscalation => {
+                "Check resource ownership before granting access"
+            }
             VulnType::DataLeakage => "Filter response fields based on user permissions",
-            VulnType::SensitiveDataExposure => "Remove or mask sensitive fields for non-admin users",
+            VulnType::SensitiveDataExposure => {
+                "Remove or mask sensitive fields for non-admin users"
+            }
             VulnType::MissingAuthentication => "Require authentication token for this endpoint",
-            VulnType::InconsistentAuth => "Standardize authentication requirements across endpoints",
+            VulnType::InconsistentAuth => {
+                "Standardize authentication requirements across endpoints"
+            }
             VulnType::RoleConfusion => "Review and fix role hierarchy in authorization logic",
-            VulnType::PaginationBypass => "Enforce pagination limits server-side regardless of request",
+            VulnType::PaginationBypass => {
+                "Enforce pagination limits server-side regardless of request"
+            }
             VulnType::TimingAttack => "Use constant-time comparison for sensitive operations",
-            VulnType::InfoDisclosure => "Return generic error messages to prevent information leakage",
+            VulnType::InfoDisclosure => {
+                "Return generic error messages to prevent information leakage"
+            }
         }
     }
 }

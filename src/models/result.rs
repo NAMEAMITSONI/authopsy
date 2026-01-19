@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::{Endpoint, Role, Vulnerability, Severity};
+use super::{Endpoint, Role, Severity, Vulnerability};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScanResult {
@@ -12,7 +12,11 @@ pub struct ScanResult {
 }
 
 impl ScanResult {
-    pub fn new(endpoint: Endpoint, responses: HashMap<Role, ResponseInfo>, duration_ms: u64) -> Self {
+    pub fn new(
+        endpoint: Endpoint,
+        responses: HashMap<Role, ResponseInfo>,
+        duration_ms: u64,
+    ) -> Self {
         Self {
             endpoint,
             responses,
@@ -54,8 +58,13 @@ pub struct ResponseInfo {
 }
 
 impl ResponseInfo {
-    pub fn new(status: u16, size: usize, body: Option<serde_json::Value>, duration_ms: u64) -> Self {
-        let keys = body.as_ref().map(|b| Self::extract_keys(b)).unwrap_or_default();
+    pub fn new(
+        status: u16,
+        size: usize,
+        body: Option<serde_json::Value>,
+        duration_ms: u64,
+    ) -> Self {
+        let keys = body.as_ref().map(Self::extract_keys).unwrap_or_default();
         Self {
             status,
             size,

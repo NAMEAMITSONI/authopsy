@@ -1,13 +1,15 @@
-pub mod cli;
-pub mod scanner;
-pub mod http;
 pub mod analyzer;
+pub mod cli;
+pub mod fuzzer;
+pub mod http;
 pub mod models;
 pub mod reporter;
-pub mod fuzzer;
+pub mod scanner;
 
-pub use models::{Endpoint, HttpMethod, Role, RoleConfig, ScanResult, Vulnerability, Severity, VulnType};
-pub use scanner::{Scanner, FuzzerScanner};
 pub use analyzer::VulnerabilityDetector;
-pub use reporter::{ConsoleReporter, JsonExporter, HtmlExporter};
-pub use fuzzer::{ParamFuzzer, HeaderFuzzer};
+pub use fuzzer::{HeaderFuzzer, ParamFuzzer};
+pub use models::{
+    Endpoint, HttpMethod, Role, RoleConfig, ScanResult, Severity, VulnType, Vulnerability,
+};
+pub use reporter::{ConsoleReporter, HtmlExporter, JsonExporter};
+pub use scanner::{FuzzerScanner, Scanner};

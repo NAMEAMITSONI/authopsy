@@ -1,5 +1,5 @@
-mod params;
 mod headers;
+mod params;
 
-pub use params::ParamFuzzer;
 pub use headers::HeaderFuzzer;
+pub use params::ParamFuzzer;

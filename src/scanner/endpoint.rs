@@ -35,7 +35,7 @@ impl EndpointParser {
             );
         }
 
-        let method = HttpMethod::from_str(parts[0]).ok_or_else(|| {
+        let method = HttpMethod::parse(parts[0]).ok_or_else(|| {
             anyhow::anyhow!("Invalid HTTP method: '{}'. Supported: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS", parts[0])
         })?;
 

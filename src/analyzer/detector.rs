@@ -1,9 +1,9 @@
-use std::collections::HashSet;
 use regex::Regex;
+use std::collections::HashSet;
 
-use crate::models::{Role, ScanResult, Vulnerability, VulnType, Evidence, Severity};
 use super::differ::JsonDiffer;
 use super::status::StatusAnalyzer;
+use crate::models::{Evidence, Role, ScanResult, Severity, VulnType, Vulnerability};
 
 pub struct VulnerabilityDetector {
     length_threshold: f64,
@@ -48,7 +48,9 @@ impl VulnerabilityDetector {
             _ => return vulns,
         };
 
-        let anon = result.get_response(Role::Anonymous).filter(|r| !r.is_error());
+        let anon = result
+            .get_response(Role::Anonymous)
+            .filter(|r| !r.is_error());
 
         if !is_public {
             vulns.extend(StatusAnalyzer::analyze(admin, user, anon));
@@ -134,7 +136,10 @@ impl VulnerabilityDetector {
                 if user_len > *admin_len {
                     findings.push(Vulnerability::high(
                         VulnType::PaginationBypass,
-                        format!("User sees {} items vs Admin's {} at {}", user_len, admin_len, path),
+                        format!(
+                            "User sees {} items vs Admin's {} at {}",
+                            user_len, admin_len, path
+                        ),
                         Evidence::array_lengths(path, *admin_len, user_len),
                     ));
                 }
@@ -163,7 +168,9 @@ impl VulnerabilityDetector {
     fn find_sensitive_fields(&self, keys: &HashSet<String>) -> Vec<String> {
         keys.iter()
             .filter(|key| {
-                self.sensitive_patterns.iter().any(|pattern| pattern.is_match(key))
+                self.sensitive_patterns
+                    .iter()
+                    .any(|pattern| pattern.is_match(key))
             })
             .cloned()
             .collect()

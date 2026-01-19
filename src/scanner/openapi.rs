@@ -1,8 +1,8 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use serde_json::Value;
 use std::fs;
 
-use crate::models::{Endpoint, HttpMethod, PathParam, ParamType};
+use crate::models::{Endpoint, HttpMethod, ParamType, PathParam};
 
 pub struct OpenApiParser;
 
@@ -59,7 +59,7 @@ impl OpenApiParser {
             };
 
             for (method_str, operation) in methods_obj {
-                if let Some(method) = HttpMethod::from_str(method_str) {
+                if let Some(method) = HttpMethod::parse(method_str) {
                     let mut endpoint = Endpoint::new(method, path.clone());
 
                     if let Some(params) = operation.get("parameters").and_then(|p| p.as_array()) {
@@ -67,8 +67,10 @@ impl OpenApiParser {
                     }
 
                     if let Some(request_body) = operation.get("requestBody") {
-                        endpoint.request_body_example = self.extract_request_body_example_v3(request_body);
-                        endpoint.request_body_schema = self.extract_request_body_schema_v3(request_body);
+                        endpoint.request_body_example =
+                            self.extract_request_body_example_v3(request_body);
+                        endpoint.request_body_schema =
+                            self.extract_request_body_schema_v3(request_body);
                     }
 
                     endpoints.push(endpoint);
@@ -94,7 +96,7 @@ impl OpenApiParser {
             };
 
             for (method_str, operation) in methods_obj {
-                if let Some(method) = HttpMethod::from_str(method_str) {
+                if let Some(method) = HttpMethod::parse(method_str) {
                     let mut endpoint = Endpoint::new(method, path.clone());
 
                     if let Some(params) = operation.get("parameters").and_then(|p| p.as_array()) {
@@ -129,7 +131,10 @@ impl OpenApiParser {
             }
 
             let param_type = self.infer_param_type_from_schema(param.get("schema"));
-            let required = param.get("required").and_then(|v| v.as_bool()).unwrap_or(true);
+            let required = param
+                .get("required")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
 
             path_params.push(PathParam {
                 name,
@@ -160,7 +165,10 @@ impl OpenApiParser {
             }
 
             let param_type = self.infer_param_type_v2(param);
-            let required = param.get("required").and_then(|v| v.as_bool()).unwrap_or(true);
+            let required = param
+                .get("required")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(true);
 
             path_params.push(PathParam {
                 name,

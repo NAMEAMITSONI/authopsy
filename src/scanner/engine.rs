@@ -8,7 +8,7 @@ use tokio::sync::Semaphore;
 
 use crate::analyzer::VulnerabilityDetector;
 use crate::http::HttpClient;
-use crate::models::{Endpoint, Role, RoleConfig, ScanResult, ResponseInfo};
+use crate::models::{Endpoint, ResponseInfo, Role, RoleConfig, ScanResult};
 
 pub struct Scanner {
     client: HttpClient,
@@ -21,6 +21,7 @@ pub struct Scanner {
 }
 
 impl Scanner {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         base_url: String,
         roles: Vec<RoleConfig>,
@@ -70,7 +71,10 @@ impl Scanner {
 
         for role_config in &self.roles {
             let body = self.get_request_body(&endpoint);
-            let response = self.client.request(&endpoint, role_config, &self.path_params, body.as_ref()).await;
+            let response = self
+                .client
+                .request(&endpoint, role_config, &self.path_params, body.as_ref())
+                .await;
             responses.insert(role_config.role, response);
         }
 
