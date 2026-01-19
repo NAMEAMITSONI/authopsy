@@ -1,0 +1,4 @@
+/target
+*.deb
+authopsy_*
+.DS_Store
